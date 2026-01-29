@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>麻将智能指导系统</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        :root {
+            --primary: #c41e3a;
+            --primary-dark: #8b1528;
+            --secondary: #1a472a;
+            --gold: #d4af37;
+            --bg-main: #0a0e0a;
+            --bg-card: #1a1f1a;
+            --bg-input: #252a25;
+            --text-primary: #e8f0e8;
+            --text-secondary: #a8b8a8;
+            --border: #3a4a3a;
+            --success: #4a9960;
+            --warning: #d48a37;
+            --danger: #c41e3a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(196, 30, 58, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(26, 71, 42, 0.08) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255, 255, 255, 0.01) 2px, rgba(255, 255, 255, 0.01) 4px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 2px solid var(--border);
+            position: relative;
+        }
+        
+        h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(196, 30, 58, 0.3);
+            letter-spacing: 0.1em;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.2em;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 30px rgba(196, 30, 58, 0.2);
+        }
+        
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .player-status {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .player-status h4 {
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        input[type="radio"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'Noto Sans SC', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(196, 30, 58, 0.5);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .advice-section {
+            grid-column: 1 / -1;
+        }
+        
+        .advice-content {
+            background: linear-gradient(135deg, rgba(26, 71, 42, 0.2), rgba(196, 30, 58, 0.1));
+            border: 2px solid var(--secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 200px;
+        }
+        
+        .advice-empty {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 3rem;
+            font-style: italic;
+        }
+        
+        .tile {
+            display: inline-block;
+            padding: 0.4rem 0.6rem;
+            margin: 0.2rem;
+            background: white;
+            color: #333;
+            border: 2px solid #666;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tile.man { color: #c41e3a; }
+        .tile.pin { color: #1a472a; }
+        .tile.sou { color: #1e3a8a; }
+        
+        .recommendation {
+            background: rgba(26, 71, 42, 0.3);
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        
+        .recommendation h3 {
+            color: var(--gold);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .probability {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin: 0.2rem;
+        }
+        
+        .expected-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--gold);
+            margin: 0.5rem 0;
+        }
+        
+        .warning {
+            background: rgba(212, 138, 55, 0.2);
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        
+        .info {
+            background: rgba(74, 153, 96, 0.2);
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+        }
+        
+        .rules-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+        }
+        
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .rule-card {
+            background: rgba(26, 71, 42, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .rule-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .rule-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .rule-card li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .rule-card li::before {
+            content: '◆';
+            position: absolute;
+            left: 0;
+            color: var(--gold);
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>麻将智能指导系统</h1>
+            <p class="subtitle">基于期望收益的最优决策分析</p>
+        </header>
+        
+        <div class="main-grid">
+            <div class="card">
+                <h2 class="card-title">当前牌型</h2>
+                <div class="input-group">
+                    <label for="handTiles">手牌（例如：123m456p789s11m22p）</label>
+                    <textarea id="handTiles" placeholder="请输入您的手牌，使用m(万)、p(饼)、s(索)表示数牌
+示例：123m456p789s11m 表示一万二万三万、四饼五饼六饼、七索八索九索、一对一万"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="drawnTile">摸到的牌（可选）</label>
+                    <input type="text" id="drawnTile" placeholder="例如：5m">
+                </div>
+                <div class="input-group">
+                    <label for="selfDeclared">自己声明的听牌模式</label>
+                    <select id="selfDeclared">
+                        <option value="none">未声明</option>
+                        <option value="pinghu">平胡</option>
+                        <option value="lizhi">立直</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">场况信息</h2>
+                
+                <div class="player-status">
+                    <h4>上家</h4>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="player1None" name="player1" value="none" checked>
+                            <label for="player1None">未听牌</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player1Pinghu" name="player1" value="pinghu">
+                            <label for="player1Pinghu">平胡</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player1Lizhi" name="player1" value="lizhi">
+                            <label for="player1Lizhi">立直</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="player-status">
+                    <h4>对家</h4>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="player2None" name="player2" value="none" checked>
+                            <label for="player2None">未听牌</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player2Pinghu" name="player2" value="pinghu">
+                            <label for="player2Pinghu">平胡</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player2Lizhi" name="player2" value="lizhi">
+                            <label for="player2Lizhi">立直</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="player-status">
+                    <h4>下家</h4>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="player3None" name="player3" value="none" checked>
+                            <label for="player3None">未听牌</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player3Pinghu" name="player3" value="pinghu">
+                            <label for="player3Pinghu">平胡</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="player3Lizhi" name="player3" value="lizhi">
+                            <label for="player3Lizhi">立直</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="visibleTiles">已知废牌（例如：123m456p）</label>
+                    <textarea id="visibleTiles" placeholder="输入桌面上已经打出的牌"></textarea>
+                </div>
+            </div>
+            
+            <div class="card advice-section">
+                <h2 class="card-title">智能建议</h2>
+                <button class="btn" onclick="analyzeAndAdvise()">分析并给出建议</button>
+                <div id="adviceResult" class="advice-content">
+                    <div class="advice-empty">请输入牌型和场况信息，点击"分析并给出建议"获取最优打牌策略</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="rules-section">
+            <h2 class="card-title">规则说明</h2>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <h3>听牌模式及声明要求</h3>
+                    <ul>
+                        <li><strong>平胡：</strong>必须在听牌前明确声明"平胡"并确认，声明后不可修改手上13张牌</li>
+                        <li><strong>平胡胡牌方式：</strong>可以荣和（胡他人打出的牌）也可以自摸</li>
+                        <li><strong>立直：</strong>必须在听牌前明确声明"立直"并确认，声明后不可修改手上13张牌</li>
+                        <li><strong>立直胡牌方式：</strong>只能自摸，不可胡他人牌</li>
+                    </ul>
+                </div>
+                
+                <div class="rule-card">
+                    <h3>倍率规则（每家为单位，基于底注计算）</h3>
+                    <ul>
+                        <li><strong>平胡自摸：</strong>对平胡/未听牌 0.2倍 | 对立直 0.6倍（三家都支付）</li>
+                        <li><strong>平胡荣和：</strong>对平胡/未听牌 0.4倍 | 对立直 0.8倍（仅出铳者支付）</li>
+                        <li><strong>立直自摸：</strong>对平胡/未听牌 0.6倍 | 对立直 1.0倍（三家都支付）</li>
+                    </ul>
+                </div>
+                
+                <div class="rule-card">
+                    <h3>胡牌加分及限制</h3>
+                    <ul>
+                        <li><strong>底注：</strong>基础胡牌底注30，倍率计算后加加分项</li>
+                        <li><strong>花色加分：</strong>仅两种花色+10；清一色（单花色）+50</li>
+                        <li><strong>牌型加分：</strong>四暗刻+50；七对+20；暗杠1次+10（可累计）</li>
+                        <li><strong>立直专属：</strong>单吊听牌+10；单吊牌每有一张（含听牌张）额外+10</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 麻将牌型解析器
+        class MahjongParser {
+            constructor() {
+                this.tileTypes = {
+                    'm': '万',
+                    'p': '饼',
+                    's': '索'
+                };
+            }
+            
+            parseTiles(input) {
+                if (!input) return [];
+                input = input.trim().toLowerCase();
+                const tiles = [];
+                let numbers = '';
+                
+                for (let char of input) {
+                    if (char >= '0' && char <= '9') {
+                        numbers += char;
+                    } else if (this.tileTypes[char]) {
+                        for (let num of numbers) {
+                            tiles.push(num + char);
+                        }
+                        numbers = '';
+                    }
+                }
+                
+                return tiles;
+            }
+            
+            formatTile(tile) {
+                if (tile.length === 2) {
+                    const num = tile[0];
+                    const type = tile[1];
+                    return `<span class="tile ${type === 'm' ? 'man' : type === 'p' ? 'pin' : 'sou'}">${num}${this.tileTypes[type]}</span>`;
+                }
+                return tile;
+            }
+        }
+        
+        // 麻将分析引擎 - 完全重写的胡牌判断逻辑
+        class MahjongAnalyzer {
+            constructor() {
+                this.parser = new MahjongParser();
+                this.totalTiles = {};
+                this.initializeTileCounts();
+            }
+            
+            initializeTileCounts() {
+                ['m', 'p', 's'].forEach(type => {
+                    for (let i = 1; i <= 9; i++) {
+                        this.totalTiles[i + type] = 4;
+                    }
+                });
+            }
+            
+            calculateRemainingTiles(handTiles, visibleTiles) {
+                const remaining = {...this.totalTiles};
+                
+                [...handTiles, ...visibleTiles].forEach(tile => {
+                    if (remaining[tile] !== undefined) {
+                        remaining[tile] = Math.max(0, remaining[tile] - 1);
+                    }
+                });
+                
+                return remaining;
+            }
+            
+            // 听牌分析
+            analyzeTenpai(tiles) {
+                if (tiles.length !== 13) {
+                    return { isTenpai: false, waitingTiles: [], pattern: null };
+                }
+                
+                const waitingTiles = [];
+                
+                // 测试所有可能的牌
+                for (let type of ['m', 'p', 's']) {
+                    for (let num = 1; num <= 9; num++) {
+                        const testTile = num + type;
+                        const testHand = [...tiles, testTile];
+                        
+                        if (this.isWinningHand(testHand)) {
+                            waitingTiles.push(testTile);
+                        }
+                    }
+                }
+                
+                let pattern = 'standard';
+                if (waitingTiles.length > 0) {
+                    const testHand = [...tiles, waitingTiles[0]];
+                    pattern = this.detectPattern(testHand);
+                }
+                
+                return {
+                    isTenpai: waitingTiles.length > 0,
+                    waitingTiles: [...new Set(waitingTiles)],
+                    pattern: pattern
+                };
+            }
+            
+            // 判断是否是胡牌
+            isWinningHand(tiles) {
+                if (tiles.length !== 14) return false;
+                
+                // 检查七对子
+                if (this.isSevenPairs(tiles)) {
+                    return true;
+                }
+                
+                // 检查标准型（4组面子+1雀头）
+                return this.isStandardWin(tiles);
+            }
+            
+            // 七对子判断
+            isSevenPairs(tiles) {
+                const counts = {};
+                tiles.forEach(tile => {
+                    counts[tile] = (counts[tile] || 0) + 1;
+                });
+                
+                const values = Object.values(counts);
+                return values.length === 7 && values.every(c => c === 2);
+            }
+            
+            // 标准型判断
+            isStandardWin(tiles) {
+                const counts = {};
+                tiles.forEach(tile => {
+                    counts[tile] = (counts[tile] || 0) + 1;
+                });
+                
+                // 枚举所有可能的雀头
+                for (let pairTile in counts) {
+                    if (counts[pairTile] >= 2) {
+                        // 尝试以该牌作为雀头
+                        const remaining = {...counts};
+                        remaining[pairTile] -= 2;
+                        
+                        if (this.checkMelds(remaining)) {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 检查剩余牌是否能组成面子
+            checkMelds(counts) {
+                // 获取所有有牌的种类
+                const tiles = [];
+                for (let tile in counts) {
+                    if (counts[tile] > 0) {
+                        tiles.push(tile);
+                    }
+                }
+                
+                if (tiles.length === 0) return true;
+                
+                // 按顺序排序
+                tiles.sort();
+                const firstTile = tiles[0];
+                
+                // 必须消除第一张牌
+                const num = parseInt(firstTile[0]);
+                const suit = firstTile[1];
+                
+                // 尝试刻子
+                if (counts[firstTile] >= 3) {
+                    const newCounts = {...counts};
+                    newCounts[firstTile] -= 3;
+                    if (this.checkMelds(newCounts)) {
+                        return true;
+                    }
+                }
+                
+                // 尝试顺子
+                if (num <= 7) {
+                    const tile2 = (num + 1) + suit;
+                    const tile3 = (num + 2) + suit;
+                    
+                    if ((counts[tile2] || 0) >= 1 && (counts[tile3] || 0) >= 1) {
+                        const newCounts = {...counts};
+                        newCounts[firstTile] -= 1;
+                        newCounts[tile2] = (newCounts[tile2] || 0) - 1;
+                        newCounts[tile3] = (newCounts[tile3] || 0) - 1;
+                        
+                        if (this.checkMelds(newCounts)) {
+                            return true;
+                        }
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 识别牌型  
+            detectPattern(tiles) {
+                if (tiles.length !== 14) return 'standard';
+                
+                // 检查七对子
+                if (this.isSevenPairs(tiles)) {
+                    return 'sevenPairs';
+                }
+                
+                const counts = {};
+                tiles.forEach(tile => {
+                    counts[tile] = (counts[tile] || 0) + 1;
+                });
+                
+                const countsArray = Object.entries(counts).sort((a, b) => a[0].localeCompare(b[0]));
+                
+                // 四暗刻必须是：恰好5种牌，其中4种是3张，1种是2张
+                if (Object.keys(counts).length === 5) {
+                    const values = Object.values(counts).sort();
+                    // 检查是否是 [2,3,3,3,3] 的模式
+                    if (values[0] === 2 && values[1] === 3 && values[2] === 3 && values[3] === 3 && values[4] === 3) {
+                        return 'fourConcealedTriplets';
+                    }
+                }
+                
+                return 'standard';
+            }
+            
+            // 计算花色加分
+            calculateColorBonus(tiles) {
+                const colors = new Set();
+                tiles.forEach(tile => {
+                    if (tile.length === 2) {
+                        colors.add(tile[1]);
+                    }
+                });
+                
+                if (colors.size === 1) return 50; // 清一色
+                if (colors.size === 2) return 10; // 两种花色
+                return 0;
+            }
+            
+            // 计算牌型加分
+            calculatePatternBonus(pattern) {
+                if (pattern === 'sevenPairs') return 20;
+                if (pattern === 'fourConcealedTriplets') return 50;
+                return 0;
+            }
+            
+            // 计算基础分
+            calculateBaseScore(tiles, pattern) {
+                let score = 30; // 底注
+                score += this.calculateColorBonus(tiles);
+                score += this.calculatePatternBonus(pattern);
+                return score;
+            }
+            
+            // 计算倍率
+            calculateMultiplier(selfMode, opponentsStatus) {
+                let totalMultiplier = 0;
+                
+                if (selfMode === 'pinghu') {
+                    // 平胡模式：可以自摸（三家支付）或荣和（出铳者单独支付）
+                    // 这里计算自摸的期望收益
+                    opponentsStatus.forEach(status => {
+                        if (status === 'lizhi') {
+                            totalMultiplier += 0.6;
+                        } else {
+                            totalMultiplier += 0.2;
+                        }
+                    });
+                } else if (selfMode === 'lizhi') {
+                    // 立直自摸：只能自摸
+                    opponentsStatus.forEach(status => {
+                        if (status === 'lizhi') {
+                            totalMultiplier += 1.0;
+                        } else {
+                            totalMultiplier += 0.6;
+                        }
+                    });
+                }
+                
+                return totalMultiplier;
+            }
+            
+            // 计算荣和（平胡专用）的倍率
+            calculateRonMultiplier(opponentStatus) {
+                // 荣和时，只有出铳者支付
+                if (opponentStatus === 'lizhi') {
+                    return 0.8;
+                } else {
+                    return 0.4;
+                }
+            }
+            
+            // 计算期望收益 - 改进版：对每张听牌分别计算
+            calculateExpectedValue(waitingTiles, afterDiscardTiles, remaining, baseMultiplier) {
+                let totalExpectedValue = 0;
+                const tileDetails = [];
+                
+                // 对每张听牌分别计算
+                waitingTiles.forEach(waitingTile => {
+                    const winningHand = [...afterDiscardTiles, waitingTile];
+                    const pattern = this.detectPattern(winningHand);
+                    const baseScore = this.calculateBaseScore(winningHand, pattern);
+                    const remainingCount = remaining[waitingTile] || 0;
+                    
+                    const tileValue = remainingCount * baseScore * baseMultiplier;
+                    totalExpectedValue += tileValue;
+                    
+                    tileDetails.push({
+                        tile: waitingTile,
+                        remainingCount: remainingCount,
+                        baseScore: baseScore,
+                        pattern: pattern,
+                        value: tileValue
+                    });
+                });
+                
+                const totalRemainingCount = tileDetails.reduce((sum, d) => sum + d.remainingCount, 0);
+                const totalTileCount = Object.values(remaining).reduce((a, b) => a + b, 0);
+                const probability = totalTileCount > 0 ? totalRemainingCount / totalTileCount : 0;
+                
+                return {
+                    totalExpectedValue: totalExpectedValue,
+                    probability: probability,
+                    totalRemainingCount: totalRemainingCount,
+                    tileDetails: tileDetails,
+                    multiplier: baseMultiplier
+                };
+            }
+        }
+        
+        // 主分析函数
+        async function analyzeAndAdvise() {
+            const handTilesInput = document.getElementById('handTiles').value;
+            const drawnTile = document.getElementById('drawnTile').value;
+            const visibleTilesInput = document.getElementById('visibleTiles').value;
+            const selfDeclared = document.getElementById('selfDeclared').value;
+            
+            const player1Status = document.querySelector('input[name="player1"]:checked').value;
+            const player2Status = document.querySelector('input[name="player2"]:checked').value;
+            const player3Status = document.querySelector('input[name="player3"]:checked').value;
+            
+            const adviceResult = document.getElementById('adviceResult');
+            
+            // 显示加载状态
+            adviceResult.innerHTML = '<div style="text-align: center; padding: 2rem;"><div class="loading"></div><p style="margin-top: 1rem;">正在分析最优策略...</p></div>';
+            
+            try {
+                const analyzer = new MahjongAnalyzer();
+                const parser = analyzer.parser;
+                
+                // 解析牌
+                let handTiles = parser.parseTiles(handTilesInput);
+                const drawn = parser.parseTiles(drawnTile);
+                const visibleTiles = parser.parseTiles(visibleTilesInput);
+                
+                if (handTiles.length === 0) {
+                    adviceResult.innerHTML = '<div class="warning">⚠️ 请输入您的手牌</div>';
+                    return;
+                }
+                
+                // 合并手牌和摸牌
+                let allHandTiles = [...handTiles, ...drawn];
+                
+                if (allHandTiles.length < 13) {
+                    adviceResult.innerHTML = `<div class="warning">⚠️ 手牌数量不足（当前${allHandTiles.length}张，需要13或14张）</div>`;
+                    return;
+                }
+                
+                if (allHandTiles.length > 14) {
+                    adviceResult.innerHTML = `<div class="warning">⚠️ 手牌数量过多（当前${allHandTiles.length}张，需要13或14张）</div>`;
+                    return;
+                }
+                
+                const remaining = analyzer.calculateRemainingTiles(allHandTiles, visibleTiles);
+                const opponentsStatus = [player1Status, player2Status, player3Status];
+                
+                // 分析每张可能打出的牌
+                const recommendations = [];
+                const uniqueTiles = [...new Set(allHandTiles)];
+                
+                for (let discardTile of uniqueTiles) {
+                    // 找到该牌在手牌中的位置并移除
+                    const discardIndex = allHandTiles.findIndex(t => t === discardTile);
+                    const afterDiscard = [...allHandTiles.slice(0, discardIndex), ...allHandTiles.slice(discardIndex + 1)];
+                    
+                    if (afterDiscard.length !== 13) continue;
+                    
+                    const tenpaiAnalysis = analyzer.analyzeTenpai(afterDiscard);
+                    
+                    if (tenpaiAnalysis.isTenpai) {
+                        // 如果用户未声明，分别计算平胡和立直的期望收益
+                        if (selfDeclared === 'none') {
+                            // 计算平胡的期望收益
+                            const pinghuMultiplier = analyzer.calculateMultiplier('pinghu', opponentsStatus);
+                            const pinghuEV = analyzer.calculateExpectedValue(
+                                tenpaiAnalysis.waitingTiles,
+                                afterDiscard,
+                                remaining,
+                                pinghuMultiplier
+                            );
+                            
+                            // 计算立直的期望收益
+                            const lizhiMultiplier = analyzer.calculateMultiplier('lizhi', opponentsStatus);
+                            const lizhiEV = analyzer.calculateExpectedValue(
+                                tenpaiAnalysis.waitingTiles,
+                                afterDiscard,
+                                remaining,
+                                lizhiMultiplier
+                            );
+                            
+                            recommendations.push({
+                                discard: discardTile,
+                                waitingTiles: tenpaiAnalysis.waitingTiles,
+                                probability: pinghuEV.probability,
+                                remainingCount: pinghuEV.totalRemainingCount,
+                                pattern: tenpaiAnalysis.pattern,
+                                // 平胡数据
+                                pinghuEV: pinghuEV.totalExpectedValue,
+                                pinghuMultiplier: pinghuMultiplier,
+                                pinghuDetails: pinghuEV.tileDetails,
+                                // 立直数据
+                                lizhiEV: lizhiEV.totalExpectedValue,
+                                lizhiMultiplier: lizhiMultiplier,
+                                lizhiDetails: lizhiEV.tileDetails,
+                                // 最优选择
+                                bestMode: pinghuEV.totalExpectedValue >= lizhiEV.totalExpectedValue ? 'pinghu' : 'lizhi',
+                                bestEV: Math.max(pinghuEV.totalExpectedValue, lizhiEV.totalExpectedValue)
+                            });
+                        } else {
+                            // 用户已声明，只计算该模式的期望收益
+                            const multiplier = analyzer.calculateMultiplier(selfDeclared, opponentsStatus);
+                            const ev = analyzer.calculateExpectedValue(
+                                tenpaiAnalysis.waitingTiles,
+                                afterDiscard,
+                                remaining,
+                                multiplier
+                            );
+                            
+                            recommendations.push({
+                                discard: discardTile,
+                                waitingTiles: tenpaiAnalysis.waitingTiles,
+                                probability: ev.probability,
+                                expectedValue: ev.totalExpectedValue,
+                                remainingCount: ev.totalRemainingCount,
+                                multiplier: ev.multiplier,
+                                pattern: tenpaiAnalysis.pattern,
+                                declaredMode: selfDeclared,
+                                tileDetails: ev.tileDetails
+                            });
+                        }
+                    }
+                }
+                
+                // 排序推荐
+                if (selfDeclared === 'none') {
+                    // 未声明时，按最优期望收益排序
+                    recommendations.sort((a, b) => b.bestEV - a.bestEV);
+                } else {
+                    // 已声明时，按期望收益排序
+                    recommendations.sort((a, b) => b.expectedValue - a.expectedValue);
+                }
+                
+                // 生成建议HTML
+                let html = '';
+                
+                // 显示当前手牌
+                html += '<div class="info"><strong>您的手牌：</strong>';
+                allHandTiles.sort().forEach(tile => {
+                    html += parser.formatTile(tile);
+                });
+                html += ` (共${allHandTiles.length}张)</div>`;
+                
+                html += '<h3 style="color: var(--gold); margin: 1.5rem 0;">打牌建议（按期望收益排序）</h3>';
+                
+                if (recommendations.length === 0) {
+                    html += '<div class="warning">⚠️ 当前牌型打出任何一张牌后都无法听牌，建议继续整理牌型</div>';
+                } else {
+                    recommendations.slice(0, 5).forEach((rec, index) => {
+                        html += `<div class="recommendation">`;
+                        html += `<h3>推荐 ${index + 1}：打出 ${parser.formatTile(rec.discard)}</h3>`;
+                        
+                        if (selfDeclared === 'none') {
+                            // 未声明时，显示两种选择的对比
+                            html += `<div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px; margin: 1rem 0;">`;
+                            html += `<p style="margin-bottom: 0.5rem;"><strong>💡 声明选择对比：</strong></p>`;
+                            html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem;">`;
+                            
+                            // 平胡
+                            html += `<div style="padding: 0.75rem; background: ${rec.bestMode === 'pinghu' ? 'rgba(74, 153, 96, 0.3)' : 'rgba(255,255,255,0.05)'}; border-radius: 4px; border: 2px solid ${rec.bestMode === 'pinghu' ? 'var(--success)' : 'transparent'};">`;
+                            html += `<div style="font-weight: 700; margin-bottom: 0.5rem;">`;
+                            if (rec.bestMode === 'pinghu') html += `⭐ `;
+                            html += `平胡</div>`;
+                            html += `<div style="font-size: 1.3rem; font-weight: 900; color: var(--gold);">${rec.pinghuEV.toFixed(1)}分</div>`;
+                            html += `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">倍率: ${rec.pinghuMultiplier.toFixed(2)}x</div>`;
+                            html += `</div>`;
+                            
+                            // 立直
+                            html += `<div style="padding: 0.75rem; background: ${rec.bestMode === 'lizhi' ? 'rgba(74, 153, 96, 0.3)' : 'rgba(255,255,255,0.05)'}; border-radius: 4px; border: 2px solid ${rec.bestMode === 'lizhi' ? 'var(--success)' : 'transparent'};">`;
+                            html += `<div style="font-weight: 700; margin-bottom: 0.5rem;">`;
+                            if (rec.bestMode === 'lizhi') html += `⭐ `;
+                            html += `立直</div>`;
+                            html += `<div style="font-size: 1.3rem; font-weight: 900; color: var(--gold);">${rec.lizhiEV.toFixed(1)}分</div>`;
+                            html += `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">倍率: ${rec.lizhiMultiplier.toFixed(2)}x</div>`;
+                            html += `</div>`;
+                            
+                            html += `</div>`;
+                            html += `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">⭐ 标记为最优选择</p>`;
+                            html += `</div>`;
+                            
+                            // 显示听牌详情
+                            html += `<div style="margin-top: 1rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px;">`;
+                            html += `<p style="font-weight: 700; margin-bottom: 0.5rem;">听牌详情（${rec.bestMode === 'pinghu' ? '平胡' : '立直'}）：</p>`;
+                            const details = rec.bestMode === 'pinghu' ? rec.pinghuDetails : rec.lizhiDetails;
+                            html += `<table style="width: 100%; font-size: 0.9rem;">`;
+                            html += `<thead><tr style="background: rgba(0,0,0,0.3);"><th style="padding: 0.5rem;">听牌</th><th>剩余</th><th>底分</th><th>价值</th><th>说明</th></tr></thead>`;
+                            html += `<tbody>`;
+                            details.forEach(d => {
+                                html += `<tr>`;
+                                html += `<td style="padding: 0.5rem;">${parser.formatTile(d.tile)}</td>`;
+                                html += `<td>${d.remainingCount}张</td>`;
+                                html += `<td>${d.baseScore}</td>`;
+                                html += `<td style="font-weight: 700; color: var(--gold);">${d.value.toFixed(1)}</td>`;
+                                let desc = '';
+                                if (d.pattern === 'sevenPairs') desc = '七对';
+                                else if (d.pattern === 'fourConcealedTriplets') desc = '四暗刻';
+                                else if (d.baseScore > 40) desc = '清一色';
+                                else if (d.baseScore > 30) desc = '两色';
+                                html += `<td style="font-size: 0.85rem; color: var(--text-secondary);">${desc}</td>`;
+                                html += `</tr>`;
+                            });
+                            html += `<tr style="background: rgba(74, 153, 96, 0.2); font-weight: 700;">`;
+                            html += `<td style="padding: 0.5rem;">合计</td>`;
+                            html += `<td>${rec.remainingCount}张</td>`;
+                            html += `<td>-</td>`;
+                            html += `<td style="color: var(--gold);">${(rec.bestMode === 'pinghu' ? rec.pinghuEV : rec.lizhiEV).toFixed(1)}</td>`;
+                            html += `<td>期望价值</td>`;
+                            html += `</tr>`;
+                            html += `</tbody></table>`;
+                            html += `<p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">`;
+                            html += `胡牌概率：${(rec.probability * 100).toFixed(1)}%`;
+                            html += `</p>`;
+                            html += `</div>`;
+                        } else {
+                            // 已声明时，只显示该模式的期望收益
+                            html += `<p><strong>期望价值：</strong><span class="expected-value">${rec.expectedValue.toFixed(1)}分</span></p>`;
+                            const modeText = rec.declaredMode === 'pinghu' ? '平胡（自摸）' : '立直（自摸）';
+                            html += `<p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">`;
+                            html += `倍率系数：${rec.multiplier.toFixed(2)}x | 声明模式：${modeText}`;
+                            html += `</p>`;
+                            
+                            // 显示听牌详情
+                            html += `<div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 6px;">`;
+                            html += `<p style="font-weight: 700; margin-bottom: 0.5rem;">听牌详情：</p>`;
+                            html += `<table style="width: 100%; font-size: 0.9rem;">`;
+                            html += `<thead><tr style="background: rgba(0,0,0,0.3);"><th style="padding: 0.5rem;">听牌</th><th>剩余</th><th>底分</th><th>价值</th><th>说明</th></tr></thead>`;
+                            html += `<tbody>`;
+                            rec.tileDetails.forEach(d => {
+                                html += `<tr>`;
+                                html += `<td style="padding: 0.5rem;">${parser.formatTile(d.tile)}</td>`;
+                                html += `<td>${d.remainingCount}张</td>`;
+                                html += `<td>${d.baseScore}</td>`;
+                                html += `<td style="font-weight: 700; color: var(--gold);">${d.value.toFixed(1)}</td>`;
+                                let desc = '';
+                                if (d.pattern === 'sevenPairs') desc = '七对';
+                                else if (d.pattern === 'fourConcealedTriplets') desc = '四暗刻';
+                                else if (d.baseScore > 40) desc = '清一色';
+                                else if (d.baseScore > 30) desc = '两色';
+                                html += `<td style="font-size: 0.85rem; color: var(--text-secondary);">${desc}</td>`;
+                                html += `</tr>`;
+                            });
+                            html += `<tr style="background: rgba(74, 153, 96, 0.2); font-weight: 700;">`;
+                            html += `<td style="padding: 0.5rem;">合计</td>`;
+                            html += `<td>${rec.remainingCount}张</td>`;
+                            html += `<td>-</td>`;
+                            html += `<td style="color: var(--gold);">${rec.expectedValue.toFixed(1)}</td>`;
+                            html += `<td>期望价值</td>`;
+                            html += `</tr>`;
+                            html += `</tbody></table>`;
+                            html += `<p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">`;
+                            html += `胡牌概率：${(rec.probability * 100).toFixed(1)}%`;
+                            html += `</p>`;
+                            html += `</div>`;
+                        }
+                        
+                        html += `</div>`;
+                    });
+                    
+                    if (recommendations.length > 5) {
+                        html += `<p style="text-align: center; color: var(--text-secondary); margin-top: 1rem;">还有 ${recommendations.length - 5} 个其他选择...</p>`;
+                    }
+                }
+                
+                adviceResult.innerHTML = html;
+                
+            } catch (error) {
+                adviceResult.innerHTML = `<div class="warning">❌ 分析出错：${error.message}<br><small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">请检查输入格式是否正确</small></div>`;
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
